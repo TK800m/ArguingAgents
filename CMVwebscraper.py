@@ -1,9 +1,3 @@
-import time
-import requests
-import urllib.request
-from bs4 import BeautifulSoup
-import json
-
 def souper(url):
     user_agent = 'Thijmen Kupers Student reseaching arguments on CMV: t.kupers@student.rug.nl'
     request = urllib.request.Request(url,headers={'User-Agent': user_agent})
@@ -29,8 +23,6 @@ def linksAndTopics(url):
         topics.append(t)
     return(topics, urls)
 
-
-
 def getOPtext(url):
     main_table = souper(url).find("div",attrs={'id':'siteTable'})
     OPtext = main_table.find("div", attrs={'class':'usertext-body'}).findAll('p')
@@ -46,8 +38,8 @@ def getOPtext(url):
     
     return(txt, OPwords, name)
 
-
 def getComments(url):
+    deltabot = 0
     comment_area = souper(url).find('div',attrs={'class':'commentarea'})
     comments = comment_area.find_all('div', attrs={'class':'entry unvoted'})
     extracted_comments = []
@@ -61,8 +53,9 @@ def getComments(url):
             extracted_comments.append({'name':commenter,'text':comment_text})
             textComm.append(comment_text)
             names.append(commenter)
-            
-    return(extracted_comments, textComm, names)
+        if commenter == "DeltaBot":
+            deltabot = 1
+    return(extracted_comments, textComm, names, deltabot)
 
 
 def search(query):
@@ -70,6 +63,7 @@ def search(query):
     TOPIC = None
     stop = False
     locURL = None
+    deltabot = None
     url = "https://old.reddit.com/r/changemyview/"
     ##two vectors of topics and urls
     topics, urls = linksAndTopics(url)
@@ -79,6 +73,7 @@ def search(query):
             word = splitTOP[x].lower()
             if word == query:
                 TOPIC = topics[i]
+                #print(i)
                 locURL = i
                 stop = True
                 break
@@ -87,12 +82,6 @@ def search(query):
     else:
         ##return all data
         URL = urls[locURL]
-        txt, OPwords, OPname = getOPtext(URL)
-        comments, commentTXT, Names = getComments(URL)
-        return(OPname, txt, commentTXT, Names, URL, TOPIC)
-
-#def helper():
-#    print("OPname, OPtxt, CommentText, commentName, URL, TOPIC = search(query)")
-#OPname, OPtxt, CommentText, commentName, URL, TOPIC = search()
-#HelpMe = helper()
-
+        OPtxt, OPwords, Opname = getOPtext(URL)
+        comments, commentTXT, Names, deltabot = getComments(URL)
+        return(OPname, OPtxt, commentTXT, Names, URL, TOPIC, deltabot)

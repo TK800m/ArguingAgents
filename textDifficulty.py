@@ -22,27 +22,13 @@ def flesch_ease_OP(text):
 	return(flesch_ease)
 
 def similarEase(easyOP, easyComm, CommentText, commentName):
-    closest = [0,0,0,0,0,0,0,0,0,0]
-    saveCloseComm = closest
-    closest[0] = abs(easyOP - easyComm[0])
+    similar = []
+    saveCloseComm = []
 
     for i in range(len(easyComm)):
         test = abs(easyOP - easyComm[i])
-        for x in range(len(closest)):
-            if x+1 < len(closest) and closest[x+1] == 0:
-                closest[x+1] = test
-                saveCloseComm[x+1]= i
-                break
-            elif OPname != commentName[i] and closest[x] > test:
-                closest[x] = test
-                saveCloseComm[x] = i
-                break
-
-    for i in range(len(saveCloseComm)):
-        print("--------------------------------------------------------------------------------\n")
-        print("OP's ease: "+str(easyOP) +" versus comment ease: "+str(easyComm[saveCloseComm[i]]))
-        print(CommentText[saveCloseComm[i]])
-        print(commentName[saveCloseComm[i]] + "\n")
-
-    return(closest, saveCloseComm)
-
+        if test <10:
+            similar =np.append(similar,easyComm[i])
+            saveCloseComm = np.append(saveCloseComm,i)
+           
+    return (similar, saveCloseComm)
