@@ -61,7 +61,7 @@ def getComments(url):
             extracted_comments.append({'name':commenter,'text':comment_text})
             textComm.append(comment_text)
             names.append(commenter)
-        if names[0] == "DeltaBot" and len(names)==1:
+        if len(names)>0 and names[0] == "DeltaBot":
             deltabot = True
             delta_link.append(link)
     return(extracted_comments, textComm, names, delta_link, deltabot)
