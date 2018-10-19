@@ -67,35 +67,30 @@ def getComments(url):
     return(extracted_comments, textComm, names, delta_link, deltabot)
 
 
-def search(query):
-    query = query.lower()
-    TOPIC = None
-    stop = False
-    locURL = None
-    deltabot = None
-    url = "https://old.reddit.com/r/changemyview/"
+def urlSearch(query):
+    import math
+    page_number = math.floor(query/25)
+    item = query-(page_number*25)-1
+    url =  "https://old.reddit.com/r/changemyview/"
+    if page_number <1:
+        url = url
+    else:
+        for i in range(page_number):
+            url = get_next_page(url)
     ##two vectors of topics and urls
     topics, urls = linksAndTopics(url)
-    for i in range(len(topics)):
-        splitTOP = topics[i].split()
-        for x in range(len(splitTOP)):
-            word = splitTOP[x].lower()
-            if word == query:
-                TOPIC = topics[i]
-                #print(i)
-                locURL = i
-                stop = True
-                break
-    if stop == False:
-        return(None,None,None,None,None,None,None, "No topic found")
-    else:
-        ##return all data
-        URL = urls[locURL]
-        OPtxt, OPwords, OPname = getOPtext(URL)
-        comments, commentTXT, Names, deltalink, deltabot = getComments(URL)
-        if deltabot == False:
-            deltalink = None
-        return(OPname, OPtxt, commentTXT, Names, URL, TOPIC, deltalink, deltabot)   
+    
+    URL = urls[item]
+    ##return all data
+    TOPIC = topics[item]
+    OPtxt, OPwords, OPname = getOPtext(URL)
+    comments, commentTXT, Names, deltalink, deltabot = getComments(URL)
+    return(OPname, OPtxt, commentTXT, Names, URL, TOPIC, deltalink, deltabot)  
+
+def get_next_page(url):
+    url = souper(url).find_all("span",attrs={'class':"next-button"})
+    url = str(url).split('>')[1].split("\"")[1]
+    return url
     
 def urlSearch(query):
     url = "https://old.reddit.com/r/changemyview/"
