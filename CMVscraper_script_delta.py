@@ -92,16 +92,7 @@ def get_next_page(url):
     url = str(url).split('>')[1].split("\"")[1]
     return url
     
-def urlSearch(query):
-    url = "https://old.reddit.com/r/changemyview/"
-    ##two vectors of topics and urls
-    topics, urls = linksAndTopics(url)
-    URL = urls[query]
-    ##return all data
-    TOPIC = topics[query]
-    OPtxt, OPwords, OPname = getOPtext(URL)
-    comments, commentTXT, Names, deltalink, deltabot = getComments(URL)
-    return(OPname, OPtxt, commentTXT, Names, URL, TOPIC, deltalink, deltabot)  
+
 
 #OPname, OPtxt, CommentText, commentName, URL, TOPIC, deltalink, deltabot= search("people")
 #OPname, OPtxt, CommentText, commentName, URL, TOPIC, deltalink, deltabot= urlSearch("0")
