@@ -61,7 +61,7 @@ def getComments(url):
             extracted_comments.append({'name':commenter,'text':comment_text})
             textComm.append(comment_text)
             names.append(commenter)
-        if commenter == "DeltaBot" and comment==0:
+        if commenter == "DeltaBot" and len(names)==1:
             deltabot = True
             delta_link.append(link)
     return(extracted_comments, textComm, names, delta_link, deltabot)
@@ -80,7 +80,7 @@ def urlSearch(query):
     ##two vectors of topics and urls
     topics, urls = linksAndTopics(url)
     
-    URL = urls[item]
+    URL = urls[item-1]
     ##return all data
     TOPIC = topics[item]
     OPtxt, OPwords, OPname = getOPtext(URL)
