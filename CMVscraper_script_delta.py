@@ -61,7 +61,7 @@ def getComments(url):
             extracted_comments.append({'name':commenter,'text':comment_text})
             textComm.append(comment_text)
             names.append(commenter)
-        if commenter == "DeltaBot" and len(names)==1:
+        if names[0] == "DeltaBot" and len(names)==1:
             deltabot = True
             delta_link.append(link)
     return(extracted_comments, textComm, names, delta_link, deltabot)
@@ -106,8 +106,8 @@ def getDeltaNames(deltalink, deltabot, CommentText):
         deltaW = deltaTXT.split()
         deltaNumber = int(deltaTXT.split()[4])
         #print(deltaW)
-        print(deltaNumber)
-        print(deltalink[0])
+        #print(deltaNumber)
+        #print(deltalink[0])
 
     from bs4 import BeautifulSoup
 
@@ -136,7 +136,7 @@ def getDeltaNames(deltalink, deltabot, CommentText):
 
         deltaurl = "https://old.reddit.com"+ deltaurl[9:-remove_letters]
 
-        print(deltaurl)
+        #print(deltaurl)
         #print(store)
 
         store = []
@@ -154,12 +154,12 @@ def getDeltaNames(deltalink, deltabot, CommentText):
         deltanames = []
         deltacomment = []
         for i in range(4,4+deltaNumber*2,2):
-            print(i)
+            #print(i)
             deltanames.append(allNames[i].text)
             deltacomment.append(allNames[i+1].text)
 
-        print(deltanames)
-        print(deltacomment)
+        #print(deltanames)
+        #print(deltacomment)
         return(deltanames, deltacomment)
 
 		
