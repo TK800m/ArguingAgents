@@ -70,7 +70,9 @@ def getComments(url):
 def urlSearch(query):
     import math
     page_number = math.floor(query/25)
-    item = query-(page_number*25)-1
+    item = query-(page_number*25)
+    if item ==24:
+        item -=1
     url =  "https://old.reddit.com/r/changemyview/"
     if page_number <1:
         url = url
@@ -80,7 +82,7 @@ def urlSearch(query):
     ##two vectors of topics and urls
     topics, urls = linksAndTopics(url)
     
-    URL = urls[item-1]
+    URL = urls[item]
     ##return all data
     TOPIC = topics[item]
     OPtxt, OPwords, OPname = getOPtext(URL)
