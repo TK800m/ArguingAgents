@@ -1,7 +1,6 @@
 import gensim
 import keras
 import numpy as np
-from CMVscraper_script_delta2 import *
 import nltk
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -138,12 +137,16 @@ def get_argument_quality(model, arguments, sentences, encoded_sentences):
 def detect_and_score(detect_model, score_model, post, topic, word2vec):
     # encode the sentences in the post and separate the arguments from the non-arguments
     arguments, non_arguments, encoded_sentences = detect_arguments(detect_model, post, topic, word2vec)
+    print("Arguments:", arguments)
+    print("Non-arguments:", non_arguments)
     # score the arguments
     argument_scores = get_argument_quality(score_model, arguments, post, encoded_sentences)
     return argument_scores
 
 def calculate_score(arguments):
     score = 0
+    if(len(arguments) == 0):
+        return 0
     for arg in arguments:
         score += arg[0]
     return (score / len(arguments))[0]
