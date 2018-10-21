@@ -20,7 +20,7 @@ def linksAndTopics(url):
     for a_tag in comment_a_tags:
         url = a_tag['href']
         if not url.startswith('http'):
-            url = "https://reddit.com"+url
+            url = "https://old.reddit.com"+url
         urls.append(url)
 
     titles = main_table.find_all('a',attrs={'class':'title'})
@@ -56,7 +56,10 @@ def getComments(url):
     for comment in comments: 
         if comment.find('form'):
             link = comment.find('a',attrs={'class':'bylink'})['href']
-            commenter = comment.find('a',attrs={'class':'author'}).text
+            if comment.find('a',attrs={'class':'author'}).text != None:
+                commenter = comment.find('a',attrs={'class':'author'}).text
+            else:
+                commenter = "u/unknown"
             comment_text = comment.find('div',attrs={'class':'md'}).text
             extracted_comments.append({'name':commenter,'text':comment_text})
             textComm.append(comment_text)
@@ -150,17 +153,46 @@ def getDeltaNames(deltalink, deltabot, CommentText):
                 delta = entry.find('div', {'class': 'md'})
                 #print(delta)
                 allNames = delta.find_all('a', {'href': True})
-
+                comment_a_tags = delta.find_all('a',attrs={'href':True})
+                delta_urls = []
+                for a_tag in comment_a_tags:
+                    delta_url = a_tag['href']
+                    delta_urls.append(delta_url)
+        #print(delta_urls)
         deltanames = []
         deltacomment = []
         for i in range(4,4+deltaNumber*2,2):
             #print(i)
-            deltanames.append(allNames[i].text)
-            deltacomment.append(allNames[i+1].text)
-
+            deltanames.append(delta_urls[i])
+            if delta_urls[i+1].startswith('/r/changemyview/comments/'):
+                deltacomment.append("https://old.reddit.com"+delta_urls[i+1])            
+            
+        deltanames, deltacomment = getdeltatext(deltacomment)
         #print(deltanames)
         #print(deltacomment)
-        return(deltanames, deltacomment)
+        return(deltanames, deltacomment, delta_urls)
+
+def getdeltatext(url):
+    name = []
+    text = []
+    for i in range(len(url)):
+        #print(url[i])
+        comment_area = souper(url[i]).find('div',attrs={'class':'commentarea'})
+        comments = comment_area.find_all('div', attrs={'class':'entry unvoted'})
+        textComm = ''
+        names = ''
+        for comment in comments: 
+            if comment.find('form'):
+                commenter = comment.find('a',attrs={'class':'author'}).text
+                comment_text = comment.find('div',attrs={'class':'md'}).text
+                textComm = comment_text
+                names = commenter
+                if textComm != '' and names!= '':
+                    name.append(names)
+                    text.append(textComm)
+                    break
+    return(name, text)
+
 
 		
 #deltaNames, deltaComments = getDeltaNames(deltalink)
