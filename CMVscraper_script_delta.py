@@ -262,3 +262,18 @@ def makeDF(post_range):
         else:
               print(str(num) + ") no delta found in: "+ TOPIC)
     return(my_data_log)
+
+def clean_up(data):
+    ntops = len(data)
+    for i in range(ntops):
+        for j in range(len(data[i])):
+            if data[i][j]=='':
+                print(stri(i)+" has empty dpost at "+ str(j))
+            else:
+                line = str(data[i][j])
+                line = line.replace('\\n','')
+                line = line.replace('//','')
+                line = line.replace('/',' ')
+                #print(line)
+                data[i][j] = line
+    return(data)
