@@ -131,16 +131,42 @@ def get_argument_quality(model, arguments, sentences, encoded_sentences):
         n_words = encoded_sentence.shape[0]
         n_features = encoded_sentence.shape[1]
         score = model.predict(encoded_sentence.reshape(1, n_words, n_features), batch_size=1, verbose=0)
+        
+        # multiply the argument score by the probability of the argument being an argument
+        score *= arg[1]
+        
         argument_scores.append((score[0], sentences[idx]))
     return argument_scores
+
+def print_results(arguments, argument_scores, non_arguments, total_post_score):
+    print("----------Good arguments-----------:")
+    for i in range(len(arguments)):
+        print("Probability:", arguments[i][1][0][0])
+        print("Quality:", argument_scores[i][0][0])
+        print(arguments[i][2])
+        print()
+    
+    print("Total post quality:", total_post_score)
+    
+    print("----------Bad arguments-----------:")
+    for i in range(len(non_arguments)):
+        print("Probability:", non_arguments[i][1][0][0])
+        print(non_arguments[i][2])
+        print()
+        
+        
+        
+    
         
 def detect_and_score(detect_model, score_model, post, topic, word2vec):
     # encode the sentences in the post and separate the arguments from the non-arguments
     arguments, non_arguments, encoded_sentences = detect_arguments(detect_model, post, topic, word2vec)
-    print("Arguments:", arguments)
-    print("Non-arguments:", non_arguments)
+    #print("Arguments:", arguments)
+    #print("Non-arguments:", non_arguments)
     # score the arguments
     argument_scores = get_argument_quality(score_model, arguments, post, encoded_sentences)
+    total_post_score = calculate_score(argument_scores)
+    print_results(arguments, argument_scores, non_arguments, total_post_score)
     return argument_scores
 
 def calculate_score(arguments):
