@@ -20,7 +20,7 @@ def linksAndTopics(url):
     for a_tag in comment_a_tags:
         url = a_tag['href']
         if not url.startswith('http'):
-            url = "https://reddit.com"+url
+            url = "https://old.reddit.com"+url
         urls.append(url)
 
     titles = main_table.find_all('a',attrs={'class':'title'})
@@ -56,57 +56,50 @@ def getComments(url):
     for comment in comments: 
         if comment.find('form'):
             link = comment.find('a',attrs={'class':'bylink'})['href']
-            commenter = comment.find('a',attrs={'class':'author'}).text
+            if len(names)>0:
+                commenter = "u/unknown"                
+            elif comment.find('a',attrs={'class':'author'}).text!= None:
+                    commenter = comment.find('a',attrs={'class':'author'}).text
+            else:
+                commenter = "u/unknown"
             comment_text = comment.find('div',attrs={'class':'md'}).text
             extracted_comments.append({'name':commenter,'text':comment_text})
             textComm.append(comment_text)
             names.append(commenter)
-        if commenter == "DeltaBot":
+        if len(names)>0 and names[0] == "DeltaBot":
             deltabot = True
             delta_link.append(link)
     return(extracted_comments, textComm, names, delta_link, deltabot)
 
 
-def search(query):
-    query = query.lower()
-    TOPIC = None
-    stop = False
-    locURL = None
-    deltabot = None
-    url = "https://old.reddit.com/r/changemyview/"
-    ##two vectors of topics and urls
-    topics, urls = linksAndTopics(url)
-    for i in range(len(topics)):
-        splitTOP = topics[i].split()
-        for x in range(len(splitTOP)):
-            word = splitTOP[x].lower()
-            if word == query:
-                TOPIC = topics[i]
-                #print(i)
-                locURL = i
-                stop = True
-                break
-    if stop == False:
-        return(None,None,None,None,None,None,None, "No topic found")
-    else:
-        ##return all data
-        URL = urls[locURL]
-        OPtxt, OPwords, OPname = getOPtext(URL)
-        comments, commentTXT, Names, deltalink, deltabot = getComments(URL)
-        if deltabot == False:
-            deltalink = None
-        return(OPname, OPtxt, commentTXT, Names, URL, TOPIC, deltalink, deltabot)   
-    
 def urlSearch(query):
-    url = "https://old.reddit.com/r/changemyview/"
+    import math
+    page_number = math.floor(query/25)
+    item = query-(page_number*25)
+    if item ==24:
+        item -=1
+    url =  "https://old.reddit.com/r/changemyview/"
+    if page_number <1:
+        url = url
+    else:
+        for i in range(page_number):
+            url = get_next_page(url)
     ##two vectors of topics and urls
     topics, urls = linksAndTopics(url)
-    URL = urls[query]
+    
+    URL = urls[item]
     ##return all data
-    TOPIC = topics[query]
+    TOPIC = topics[item]
     OPtxt, OPwords, OPname = getOPtext(URL)
     comments, commentTXT, Names, deltalink, deltabot = getComments(URL)
     return(OPname, OPtxt, commentTXT, Names, URL, TOPIC, deltalink, deltabot)  
+
+def get_next_page(url):
+    url = souper(url).find_all("span",attrs={'class':"next-button"})
+    url = str(url).split('>')[1].split("\"")[1]
+    return url
+    
+
 
 #OPname, OPtxt, CommentText, commentName, URL, TOPIC, deltalink, deltabot= search("people")
 #OPname, OPtxt, CommentText, commentName, URL, TOPIC, deltalink, deltabot= urlSearch("0")
@@ -118,8 +111,8 @@ def getDeltaNames(deltalink, deltabot, CommentText):
         deltaW = deltaTXT.split()
         deltaNumber = int(deltaTXT.split()[4])
         #print(deltaW)
-        print(deltaNumber)
-        print(deltalink[0])
+        #print(deltaNumber)
+        #print(deltalink[0])
 
     from bs4 import BeautifulSoup
 
@@ -148,7 +141,7 @@ def getDeltaNames(deltalink, deltabot, CommentText):
 
         deltaurl = "https://old.reddit.com"+ deltaurl[9:-remove_letters]
 
-        print(deltaurl)
+        #print(deltaurl)
         #print(store)
 
         store = []
@@ -162,17 +155,46 @@ def getDeltaNames(deltalink, deltabot, CommentText):
                 delta = entry.find('div', {'class': 'md'})
                 #print(delta)
                 allNames = delta.find_all('a', {'href': True})
-
+                comment_a_tags = delta.find_all('a',attrs={'href':True})
+                delta_urls = []
+                for a_tag in comment_a_tags:
+                    delta_url = a_tag['href']
+                    delta_urls.append(delta_url)
+        #print(delta_urls)
         deltanames = []
         deltacomment = []
         for i in range(4,4+deltaNumber*2,2):
-            print(i)
-            deltanames.append(allNames[i].text)
-            deltacomment.append(allNames[i+1].text)
+            #print(i)
+            deltanames.append(delta_urls[i])
+            if delta_urls[i+1].startswith('/r/changemyview/comments/'):
+                deltacomment.append("https://old.reddit.com"+delta_urls[i+1])            
+            
+        deltanames, deltacomment = getdeltatext(deltacomment)
+        #print(deltanames)
+        #print(deltacomment)
+        return(deltanames, deltacomment, delta_urls)
 
-        print(deltanames)
-        print(deltacomment)
-        return(deltanames, deltacomment)
+def getdeltatext(url):
+    name = []
+    text = []
+    for i in range(len(url)):
+        #print(url[i])
+        comment_area = souper(url[i]).find('div',attrs={'class':'commentarea'})
+        comments = comment_area.find_all('div', attrs={'class':'entry unvoted'})
+        textComm = ''
+        names = ''
+        for comment in comments: 
+            if comment.find('form'):
+                commenter = comment.find('a',attrs={'class':'author'}).text
+                comment_text = comment.find('div',attrs={'class':'md'}).text
+                textComm = comment_text
+                names = commenter
+                if textComm != '' and names!= '' and len(textComm)>500:
+                    name.append(names)
+                    text.append(textComm)
+                    break
+    return(name, text)
+
 
 		
 #deltaNames, deltaComments = getDeltaNames(deltalink)
@@ -192,3 +214,67 @@ def find_delta_txt(deltaNames, deltaComments, CommentText, commentName):
     return(deltaPost)
 
 #deltapost = find_delta_txt(deltaNames, deltaComments, CommentText, commentName)
+
+from textstat.textstat import textstat
+import numpy
+
+def flesch_kincaid_comm(text):
+    flesch_kincaid = []
+    for i in range(len(text)):
+        flesch_kincaid.append(textstat.flesch_kincaid_grade(text[i]))
+    return(flesch_kincaid)
+
+def flesch_ease_comm(text):
+    flesch_ease = []
+    for i in range(len(text)):
+        flesch_ease.append(textstat.flesch_reading_ease(text[i]))
+    return(flesch_ease)
+
+def flesch_kincaid_OP(text):
+    flesch_kincaid = textstat.flesch_kincaid_grade(text)
+    return(flesch_kincaid)
+
+def flesch_ease_OP(text):
+    flesch_ease = textstat.flesch_reading_ease(text)
+    return(flesch_ease)
+
+def similarEase(easyOP, easyComm, CommentText, commentName):
+    similar = []
+    saveCloseComm = []
+
+    for i in range(len(easyComm)):
+        test = abs(easyOP - easyComm[i])
+        if test <10:
+            similar =np.append(similar,easyComm[i])
+            saveCloseComm = np.append(saveCloseComm,i)
+           
+    return (similar, saveCloseComm)
+
+def makeDF(post_range):
+    my_data_log = []
+    for num in post_range:
+        OPname, OPtxt, CommentText, commentName, URL, TOPIC, deltalink, deltabot= urlSearch(num)
+        if deltalink != None and len(deltalink) >0:
+            print(str(num) + ") found a delta in: "+ URL)
+            deltaNames, deltapost, delta_urls = getDeltaNames(deltalink, deltabot, CommentText)
+            if len(deltapost)>0:
+                my_data_log.append([CommentText, TOPIC,OPtxt,CommentText, deltapost])
+                my_data_log = clean_up(my_data_log)
+        else:
+              print(str(num) + ") no delta found in: "+ TOPIC)
+    return(my_data_log)
+
+def clean_up(data):
+    ntops = len(data)
+    for i in range(ntops):
+        for j in range(len(data[i][4])):
+            if data[i][4][j]=='':
+                print(stri(i)+" has empty dpost at "+ str(j))
+            else:
+                line = str(data[i][4][j])
+                line = line.replace('\\n','')
+                line = line.replace('//','')
+                line = line.replace('/',' ')
+                #print(line)
+                data[i][4][j] = line[1:-1]
+    return(data)

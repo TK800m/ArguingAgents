@@ -167,7 +167,7 @@ def detect_and_score(detect_model, score_model, post, topic, word2vec):
     argument_scores = get_argument_quality(score_model, arguments, post, encoded_sentences)
     total_post_score = calculate_score(argument_scores)
     print_results(arguments, argument_scores, non_arguments, total_post_score)
-    return argument_scores
+    return total_post_score
 
 def calculate_score(arguments):
     score = 0
