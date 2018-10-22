@@ -56,8 +56,10 @@ def getComments(url):
     for comment in comments: 
         if comment.find('form'):
             link = comment.find('a',attrs={'class':'bylink'})['href']
-            if comment.find('a',attrs={'class':'author'}).text != None:
-                commenter = comment.find('a',attrs={'class':'author'}).text
+            if len(names)>0:
+                commenter = "u/unknown"                
+            elif comment.find('a',attrs={'class':'author'}).text!= None:
+                    commenter = comment.find('a',attrs={'class':'author'}).text
             else:
                 commenter = "u/unknown"
             comment_text = comment.find('div',attrs={'class':'md'}).text
@@ -187,7 +189,7 @@ def getdeltatext(url):
                 comment_text = comment.find('div',attrs={'class':'md'}).text
                 textComm = comment_text
                 names = commenter
-                if textComm != '' and names!= '':
+                if textComm != '' and names!= '' and len(textComm)>500:
                     name.append(names)
                     text.append(textComm)
                     break
@@ -248,3 +250,15 @@ def similarEase(easyOP, easyComm, CommentText, commentName):
            
     return (similar, saveCloseComm)
 
+def makeDF(post_range):
+    my_data_log = []
+    for num in post_range:
+        OPname, OPtxt, CommentText, commentName, URL, TOPIC, deltalink, deltabot= urlSearch(num)
+        if deltalink != None and len(deltalink) >0:
+            print(str(num) + ") found a delta in: "+ URL)
+            deltaNames, deltapost, delta_urls = getDeltaNames(deltalink, deltabot, CommentText)
+            if len(deltapost)>0:
+                my_data_log.append([CommentText, TOPIC,OPtxt,CommentText, deltapost])
+        else:
+              print(str(num) + ") no delta found in: "+ TOPIC)
+    return(my_data_log)
