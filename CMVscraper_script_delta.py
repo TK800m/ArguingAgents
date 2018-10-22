@@ -259,6 +259,7 @@ def makeDF(post_range):
             deltaNames, deltapost, delta_urls = getDeltaNames(deltalink, deltabot, CommentText)
             if len(deltapost)>0:
                 my_data_log.append([CommentText, TOPIC,OPtxt,CommentText, deltapost])
+                my_data_log = clean_up(my_data_log)
         else:
               print(str(num) + ") no delta found in: "+ TOPIC)
     return(my_data_log)
@@ -266,14 +267,14 @@ def makeDF(post_range):
 def clean_up(data):
     ntops = len(data)
     for i in range(ntops):
-        for j in range(len(data[i])):
-            if data[i][j]=='':
+        for j in range(len(data[i][4])):
+            if data[i][4][j]=='':
                 print(stri(i)+" has empty dpost at "+ str(j))
             else:
-                line = str(data[i][j])
+                line = str(data[i][4][j])
                 line = line.replace('\\n','')
                 line = line.replace('//','')
                 line = line.replace('/',' ')
                 #print(line)
-                data[i][j] = line
+                data[i][4][j] = line[1:-1]
     return(data)
