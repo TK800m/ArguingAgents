@@ -41,7 +41,10 @@ def getOPtext(url):
 
 
     OPname = main_table.find("a", attrs={'class':"author"})
-    OPname = OPname.text
+    if OPname != None:
+        OPname = OPname.text
+    else:
+        OPname = "unkonwn"
     
     return(txt, OPwords, OPname)
 
@@ -58,7 +61,7 @@ def getComments(url):
             link = comment.find('a',attrs={'class':'bylink'})['href']
             if len(names)>0:
                 commenter = "u/unknown"                
-            elif comment.find('a',attrs={'class':'author'}).text!= None:
+            elif comment.find('a',attrs={'class':'author'}) != None and comment.find('a',attrs={'class':'author'}).text!= None:
                     commenter = comment.find('a',attrs={'class':'author'}).text
             else:
                 commenter = "u/unknown"
@@ -185,7 +188,10 @@ def getdeltatext(url):
         names = ''
         for comment in comments: 
             if comment.find('form'):
-                commenter = comment.find('a',attrs={'class':'author'}).text
+                if comment.find('a',attrs={'class':'author'}) != None and comment.find('a',attrs={'class':'author'}).text!= None:
+                    commenter = comment.find('a',attrs={'class':'author'}).text
+                else:
+                    commenter = 'unknown'
                 comment_text = comment.find('div',attrs={'class':'md'}).text
                 textComm = comment_text
                 names = commenter
@@ -263,3 +269,34 @@ def clean_up(data, pos):
                 #print(line)
                 data[i][pos][j] = line
     return(data)
+
+def acc_ease(my_manual_data):
+    acc2 = []
+    for i in range(len(my_manual_data)):
+        OPease = flesch_ease_OP(my_manual_data[i][1])
+        COMease = flesch_ease_comm(my_manual_data[i][2])
+        Dease = flesch_ease_comm(my_manual_data[i][3])
+        similar, loc = similarEase(OPease, COMease, "", "unknown")
+        for x in range(len(similar)):
+            similar[x] = abs(similar[x] - OPease)
+        similar.sort()
+        for x in range(len(Dease)):
+            Dease[x] = abs(Dease[x]-OPease)
+        for x in range(len(COMease)):
+            COMease[x] = abs(COMease[x]-OPease)
+
+
+        COMease.sort()
+        save_best = len(COMease)
+        for x in range(len(Dease)):
+            for i in range(len(COMease)):
+                if Dease[x]< COMease[i]:
+                    if i <= save_best:
+                        save_best = i
+                    else:
+                        break
+        acc2.append(100-(save_best/len(COMease))*100)
+
+
+    print(np.mean(acc2))
+    return(acc2)
