@@ -1,0 +1,11 @@
+keras
+tensorflow
+gensim
+numpy
+nltk
+sklearn
+requests
+urllib
+bs4
+json
+pandas 
