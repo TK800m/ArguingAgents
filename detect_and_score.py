@@ -65,7 +65,7 @@ def encode_post(sentences, topic, word2vec):
     return encoded_sentences
         
 
-def detect_arguments(model, post, topic, word2vec):
+def detect_arguments(model, threshold, post, topic, word2vec):
     # split text into sentences
     post_sentences = post.split(".")
     # encode the sentences
@@ -86,37 +86,14 @@ def detect_arguments(model, post, topic, word2vec):
         if(n_words > 0):
             n_features = encoded_sentences[i].shape[1]
             prediction = model.predict(encoded_sentences[i].reshape(1, n_words, n_features), batch_size=1, verbose=0)
-            if(prediction > 0.5):
+            if(prediction > threshold):
                 arguments.append((i, prediction, post_sentences[i]))
             else:
                 non_arguments.append((i, prediction, post_sentences[i]))
         else:
-             non_arguments.append((i, prediction, post_sentences[i]))
+             non_arguments.append((i, 0, post_sentences[i]))
             
     return arguments, non_arguments, encoded_sentences
-
-def claim_or_evidence(model, arguments, sentences, encoded_sentences):
-    sentences = sentences.split(".")
-    # classify every argument as evidence or claim
-    classified_arguments = []
-    for arg in arguments:
-        # take the index from the tuple
-        idx = arg[0]
-        # take the encoded sentence corresponding to this
-        # argument
-        encoded_sentence = encoded_sentences[idx]
-       
-        n_words = encoded_sentence.shape[0]
-        n_features = encoded_sentence.shape[1]
-        score = model.predict(encoded_sentence.reshape(1, n_words, n_features), batch_size=1, verbose=0)
-        print(score[0])
-        # the LSTM is trained on discriminating between evidence sentences and non-evidence sentenves
-        # ASSUMPTION: if the argument is not an evidence sentence, it's a claim sentence
-        if(score >= 0.5):
-            classified_arguments.append((score[0], "EVIDENCE", sentences[idx]))
-        else:
-            classified_arguments.append((score[0], "CLAIM", sentences[idx]))
-    return classified_arguments
 
 def get_argument_quality(model, arguments, sentences, encoded_sentences):
     sentences = sentences.split(".")
@@ -141,8 +118,8 @@ def get_argument_quality(model, arguments, sentences, encoded_sentences):
 def print_results(arguments, argument_scores, non_arguments, total_post_score):
     print("----------Good arguments-----------:")
     for i in range(len(arguments)):
-        print("Probability:", arguments[i][1][0][0])
-        print("Quality:", argument_scores[i][0][0])
+        print("Probability:", arguments[i][1])
+        print("Quality:", argument_scores[i][0])
         print(arguments[i][2])
         print()
     
@@ -150,7 +127,7 @@ def print_results(arguments, argument_scores, non_arguments, total_post_score):
     
     print("----------Bad arguments-----------:")
     for i in range(len(non_arguments)):
-        print("Probability:", non_arguments[i][1][0][0])
+        print("Probability:", non_arguments[i][1])
         print(non_arguments[i][2])
         print()
         
@@ -158,15 +135,16 @@ def print_results(arguments, argument_scores, non_arguments, total_post_score):
         
     
         
-def detect_and_score(detect_model, score_model, post, topic, word2vec):
+def detect_and_score(detect_model, threshold, score_model, post, topic, word2vec, print_arguments = False):
     # encode the sentences in the post and separate the arguments from the non-arguments
-    arguments, non_arguments, encoded_sentences = detect_arguments(detect_model, post, topic, word2vec)
+    arguments, non_arguments, encoded_sentences = detect_arguments(detect_model, threshold, post, topic, word2vec)
     #print("Arguments:", arguments)
     #print("Non-arguments:", non_arguments)
     # score the arguments
     argument_scores = get_argument_quality(score_model, arguments, post, encoded_sentences)
     total_post_score = calculate_score(argument_scores)
-    print_results(arguments, argument_scores, non_arguments, total_post_score)
+    if(print_arguments):
+        print_results(arguments, argument_scores, non_arguments, total_post_score)
     return total_post_score
 
 def calculate_score(arguments):
